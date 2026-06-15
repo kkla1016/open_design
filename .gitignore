@@ -1,2 +1,13 @@
 node_modules/
+open-design/
 .DS_Store
+desktop.ini
+*.pdf
+*.docx
+*.jpg
+*.png
+package.json
+package-lock.json
+create_report.js
+md2html.py
+2026_May_Revenue_Report.html
