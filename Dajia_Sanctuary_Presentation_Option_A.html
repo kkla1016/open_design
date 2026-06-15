@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>風的容器 - 大甲鐵砧山腳的精神庇護所</title>
+    <!-- 字體載入：建築人文風格 (Noto Serif SC 襯線 / Inter 無襯線) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Noto+Serif+SC:wght@200;300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           色彩計畫與字體定義 (CSS Variables)
+           =========================================== */
+        :root {
+            --bg-primary: #FAFAFA;     /* 西薩幾何純白 */
+            --bg-secondary: #EAEAEA;   /* 安藤清水模冷灰 */
+            --text-primary: #1C2331;   /* Zumthor 水影深藍 */
+            --text-secondary: #666666; /* 次要灰 */
+            --accent-earth: #8B4513;   /* 大地赭紅 */
+            --accent-light: #E3C16F;   /* 黎明金 */
+            
+            --font-display: 'Noto Serif SC', serif;
+            --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+            
+            --stage-bg: #111;
+            --slide-bg: var(--bg-primary); 
+        }
+        
+        /* ===========================================
+           16:9 滿版流體框架 (Viewport Base)
+           =========================================== */
+        html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg); color: var(--text-primary); font-family: var(--font-body); }
+        .deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg); }
+        
+        /* 簡報 1920x1080 縮放舞台 */
+        .deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg); z-index: 1; }
+        
+        .slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg); }
+        .slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 2; transition: opacity 0.8s ease; }
+        
+        /* ===========================================
+           前端動畫與互動 (Fade & Slide) 
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .slide.visible .reveal { opacity: 1; transform: translateY(0); }
+        
+        /* 微互動：漸進式浮現 (Staggered Fade-in) */
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.25s; }
+        .reveal:nth-child(3) { transition-delay: 0.4s; }
+        .reveal:nth-child(4) { transition-delay: 0.55s; }
+        .reveal:nth-child(5) { transition-delay: 0.7s; }
+        .reveal:nth-child(6) { transition-delay: 0.85s; }
+        
+        /* ===========================================
+           網格系統與排版 (Grid & Typography)
+           =========================================== */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 32px;
+            padding: 120px 160px;
+            height: 1080px;
+            box-sizing: border-box;
+        }
+        
+        h1, h2, h3 { font-family: var(--font-display); font-weight: 300; margin: 0; letter-spacing: 0.05em; }
+        h1 { font-size: 130px; line-height: 1.2; color: var(--text-primary); letter-spacing: 0.08em; }
+        h2 { font-size: 72px; line-height: 1.3; color: var(--text-primary); margin-bottom: 48px; position: relative; }
+        h2::after { content: ''; display: block; width: 60px; height: 1px; background: var(--text-primary); margin-top: 32px; }
+        h3 { font-size: 32px; color: var(--text-primary); margin-bottom: 16px; font-weight: 400; }
+        p { font-size: 24px; line-height: 1.9; font-weight: 300; color: var(--text-secondary); }
+        
+        .bg-white { background: var(--bg-primary); }
+        .bg-gray { background: var(--bg-secondary); }
+        
+        .hero-subtitle { font-size: 22px; color: var(--accent-earth); margin-bottom: 24px; font-weight: 400; letter-spacing: 0.3em; font-family: var(--font-display); text-transform: uppercase; }
+        
+        /* 響應式大師矩陣 */
+        .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(28, 35, 49, 0.1); border: 1px solid rgba(28, 35, 49, 0.1); }
+        .matrix-cell { background: var(--bg-primary); padding: 72px; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); cursor: default; }
+        .matrix-cell:hover { background: var(--text-primary); }
+        .matrix-cell:hover h3, .matrix-cell:hover p, .matrix-cell:hover .sub-text { color: var(--bg-primary); }
+        .matrix-cell:hover h3 { color: var(--accent-light); }
+        .matrix-cell h3 { transition: color 0.4s ease; margin-bottom: 16px; }
+        .matrix-cell p { margin: 0; }
+        .matrix-cell .sub-text { font-size: 18px; opacity: 0.6; font-family: var(--font-body); margin-top: 12px; display: block; transition: color 0.4s ease; }
+        
+        .highlight { color: var(--accent-earth); font-weight: 500; }
+        .controls { position: fixed; bottom: 30px; right: 40px; z-index: 100; font-family: var(--font-body); font-size: 12px; letter-spacing: 0.2em; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; }
+        .slide-number { position: absolute; bottom: 60px; left: 160px; font-family: var(--font-body); font-size: 14px; font-weight: 300; letter-spacing: 0.2em; color: rgba(28, 35, 49, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="deck-viewport">
+        <main class="deck-stage" id="deckStage">
+            
+            <!-- Slide 1: 封面 -->
+            <section class="slide active bg-white">
+                <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; padding-left: 160px; max-width: 1400px; position: relative;">
+                    <div class="reveal">
+                        <p class="hero-subtitle">大甲鐵砧山腳下融合當代大師構築語彙的精神庇護所</p>
+                    </div>
+                    <h1 class="reveal" style="margin-top: 24px;">風的容器<br><span style="color: rgba(28,35,49,0.15); font-size: 72px; font-family: var(--font-body); font-weight: 200; display: block; margin-top: 16px; letter-spacing: 0.05em;">Wind & Sacred Container</span></h1>
+                </div>
+                <div class="slide-number">01 / CONCEPT</div>
+            </section>
+            
+            <!-- Slide 2: 研究動機 -->
+            <section class="slide bg-gray">
+                <div class="grid-container" style="align-items: center;">
+                    <div style="grid-column: 2 / 12;">
+                        <h2 class="reveal">大甲風土的四大物質想像</h2>
+                        <p class="reveal" style="margin-bottom: 64px; font-size: 28px; color: var(--text-primary);">將在地風土轉化為空間現象學的核心命題：</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+                            <div class="reveal" style="border-left: 1px solid var(--accent-earth); padding-left: 32px;">
+                                <h3 style="color: var(--accent-earth);">氣 / 九降風</h3>
+                                <p>無形的流動雕刻了建築的虛空。</p>
+                            </div>
+                            <div class="reveal" style="border-left: 1px solid var(--text-primary); padding-left: 32px;">
+                                <h3 style="color: var(--text-primary);">水 / 大甲溪</h3>
+                                <p>靜謐的倒影延展了時間的深度。</p>
+                            </div>
+                            <div class="reveal" style="border-left: 1px solid var(--text-secondary); padding-left: 32px;">
+                                <h3 style="color: var(--text-secondary);">土 / 鐵砧山紅土</h3>
+                                <p>粗獷的材質錨定了大地的重量。</p>
+                            </div>
+                            <div class="reveal" style="border-left: 1px solid var(--accent-light); padding-left: 32px;">
+                                <h3 style="color: var(--accent-light);">火 / 鎮瀾宮神光</h3>
+                                <p>幽暗中的光束成為信仰的指引。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-number">02 / MOTIVATION</div>
+            </section>
+            
+            <!-- Slide 3: 大師轉譯 -->
+            <section class="slide bg-white">
+                <div class="grid-container" style="align-items: center;">
+                    <div style="grid-column: 2 / 12;">
+                        <h2 class="reveal" style="margin-bottom: 64px;">現象學大師的在地轉譯</h2>
+                        <div class="matrix reveal">
+                            <div class="matrix-cell">
+                                <h3>柯比意 <span style="font-size: 20px; font-family: var(--font-body); font-weight:300; opacity: 0.5;">Le Corbusier</span></h3>
+                                <p>光的戲劇性<span class="sub-text">將鎮瀾宮的神聖感轉譯為採光井的漫射</span></p>
+                            </div>
+                            <div class="matrix-cell">
+                                <h3>安藤忠雄 <span style="font-size: 20px; font-family: var(--font-body); font-weight:300; opacity: 0.5;">Tadao Ando</span></h3>
+                                <p>清水模的純粹<span class="sub-text">以極簡的幾何結構承載鐵砧山的粗獷紅土</span></p>
+                            </div>
+                            <div class="matrix-cell">
+                                <h3>彼得·卒姆托 <span style="font-size: 20px; font-family: var(--font-body); font-weight:300; opacity: 0.5;">Peter Zumthor</span></h3>
+                                <p>水與陰影的共鳴<span class="sub-text">創造幽暗水庭，凝結大甲溪的靜謐時間</span></p>
+                            </div>
+                            <div class="matrix-cell">
+                                <h3>阿爾瓦羅·西薩 <span style="font-size: 20px; font-family: var(--font-body); font-weight:300; opacity: 0.5;">Álvaro Siza</span></h3>
+                                <p>空間的雕塑性<span class="sub-text">白色體塊隨地形起伏，溫柔擁抱邊緣地景</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-number">03 / TRANSLATION</div>
+            </section>
+            
+            <!-- Slide 4: 設計策略 -->
+            <section class="slide bg-gray">
+                <div class="grid-container" style="align-items: center;">
+                    <div style="grid-column: 2 / 12;">
+                        <h2 class="reveal">風與光的構築操作</h2>
+                        <div style="display: flex; gap: 80px; margin-top: 80px;">
+                            <div class="reveal" style="flex: 1;">
+                                <h3 style="font-size: 36px; color: var(--text-primary); margin-bottom: 32px;">01. 導風牆與風之廊</h3>
+                                <p style="font-size: 22px;">利用建築量體收束九降風，形成降速的風笛感，讓狂風轉化為空間中溫柔的耳語。</p>
+                            </div>
+                            <div class="reveal" style="flex: 1;">
+                                <h3 style="font-size: 36px; color: var(--text-primary); margin-bottom: 32px;">02. 水之印記</h3>
+                                <p style="font-size: 22px;">靜止的冥想水庭，反射天光與雲影，在堅硬的清水模中注入柔軟的流動性。</p>
+                            </div>
+                            <div class="reveal" style="flex: 1;">
+                                <h3 style="font-size: 36px; color: var(--text-primary); margin-bottom: 32px;">03. 神光採光井</h3>
+                                <p style="font-size: 22px;">在刻意的幽暗深處，引入一道精準的天光，創造猶如宗教般的暗影救贖。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-number">04 / STRATEGY</div>
+            </section>
+            
+            <!-- Slide 5: 預期成果 -->
+            <section class="slide bg-white">
+                <div class="grid-container" style="align-items: center; justify-content: center; text-align: center;">
+                    <div style="grid-column: 3 / 11;">
+                        <p class="hero-subtitle reveal" style="margin-bottom: 24px;">預期成果</p>
+                        <h2 class="reveal" style="font-size: 88px; margin-bottom: 72px;">都市邊緣的角落庇護</h2>
+                        <p class="reveal" style="font-size: 28px; line-height: 2.2; color: var(--text-primary);">
+                            本設計不僅是一座建築，更是<span class="highlight">「放大的精神家屋」</span>。<br><br>
+                            透過嚴謹的 <span style="font-family: var(--font-body); letter-spacing: 0; font-weight: 400;">CFD 風洞模擬</span> (理性) 與 <span class="highlight">空間詩學</span> (感性) 的操作，<br>
+                            在喧囂的邊緣地景中，創造一處能安頓身心、對話自然的精神堡壘。
+                        </p>
+                    </div>
+                </div>
+                <div class="slide-number">05 / CONCLUSION</div>
+            </section>
+            
+        </main>
+        
+        <div class="controls">SPACE / ARROWS</div>
+    </div>
+
+    <!-- 簡報導航邏輯 -->
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.stage = document.getElementById('deckStage');
+                this.setupStageScale();
+                this.setupKeyboardNav();
+                this.showSlide(0);
+            }
+
+            setupStageScale() {
+                const scale = () => {
+                    const factor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+                    const x = (window.innerWidth - 1920 * factor) / 2;
+                    const y = (window.innerHeight - 1080 * factor) / 2;
+                    this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+                };
+                scale();
+                window.addEventListener('resize', scale);
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                        this.showSlide(this.currentSlide + 1);
+                    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                        this.showSlide(this.currentSlide - 1);
+                    }
+                });
+            }
+
+            showSlide(index) {
+                if (index < 0 || index >= this.slides.length) return;
+                this.currentSlide = index;
+                this.slides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === this.currentSlide);
+                    slide.classList.toggle('visible', i === this.currentSlide);
+                });
+            }
+        }
+        window.addEventListener('load', () => {
+            new SlidePresentation();
+        });
+    </script>
+</body>
+</html>
